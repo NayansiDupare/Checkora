@@ -32,6 +32,7 @@ class NavigationTest(BaseE2ETest):
     def test_02_welcome_overlay_loads(self):
         """Welcome overlay has name inputs and mode buttons."""
         log_info("Testing welcome overlay elements...")
+        self._login()
         self.driver.get(self.live_server_url + '/play/')
 
         welcome_overlay = self.wait.until(
@@ -82,6 +83,7 @@ class NavigationTest(BaseE2ETest):
     def test_04_ai_mode_shows_pve_options(self):
         """Clicking Play vs AI reveals difficulty and color selection."""
         log_info("Testing AI mode options...")
+        self._login()
         self.driver.get(self.live_server_url + '/play/')
 
         self.wait.until(
@@ -118,6 +120,7 @@ class NavigationTest(BaseE2ETest):
     def test_05_back_button_returns_to_mode_selection(self):
         """Back button in PvE options returns to mode selection screen."""
         log_info("Testing back button...")
+        self._login()
         self.driver.get(self.live_server_url + '/play/')
 
         self.wait.until(
@@ -224,7 +227,7 @@ class NavigationTest(BaseE2ETest):
     def test_10_header_shows_signin_register_when_logged_out(self):
         """Header shows Sign In and Register buttons when not logged in."""
         log_info("Testing header auth buttons...")
-        self._start_pvp_game()
+        self.driver.get(self.live_server_url + '/')
 
         # Sign In button should be present
         signin_btn = self.wait.until(
@@ -245,6 +248,7 @@ class NavigationTest(BaseE2ETest):
     def test_11_name_validation_error_on_empty_submit(self):
         """Clicking PvP without entering names shows validation error."""
         log_info("Testing name validation...")
+        self._login()
         self.driver.get(self.live_server_url + '/play/')
 
         self.wait.until(

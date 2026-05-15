@@ -11,6 +11,7 @@ from django.test import SimpleTestCase, TestCase, override_settings
 
 from .engine import ChessGame
 
+
 class EnginePathResolutionTest(SimpleTestCase):
     """Engine path selection should work across local platforms."""
 
@@ -25,7 +26,7 @@ class EnginePathResolutionTest(SimpleTestCase):
             mock.patch.object(ChessGame, 'ENGINE_CANDIDATES', candidates),
             mock.patch(
                 'game.engine.os.path.exists',
-                side_effect=lambda path: path == candidates[0],
+                side_effect=lambda path: path == candidates[0]
             ),
         ):
             self.assertEqual(ChessGame._resolve_engine_path(), candidates[0])
@@ -41,8 +42,7 @@ class EnginePathResolutionTest(SimpleTestCase):
             mock.patch.object(ChessGame, 'ENGINE_CANDIDATES', candidates),
             mock.patch(
                 'game.engine.os.path.exists',
-                side_effect=lambda path: path in {
-                    candidates[1], candidates[2]},
+                side_effect=lambda path: path in {candidates[1], candidates[2]}
             ),
         ):
             self.assertEqual(ChessGame._resolve_engine_path(), candidates[1])
@@ -67,13 +67,29 @@ class EnginePathResolutionTest(SimpleTestCase):
                 [sys.executable, candidates[2]],
             )
 
-class BoardViewTest(TestCase):
-    """The board page should load and initialise a session."""
+
+class AuthenticatedClientTestCase(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.client.login(username='testuser', password='password')
+
+class BoardViewTest(AuthenticatedClientTestCase):
+    """The board page should load and initialise a session for authenticated users."""
+
+    def setUp(self):
+        super().setUp()
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(
+            username='testplayer', password='testpass123'
+        )
+        self.client.login(username='testplayer', password='testpass123')
 
     def test_page_loads(self):
         response = self.client.get('/play/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Checkora')
+
 
 class LandingViewTest(TestCase):
     """The landing page at / should load and link to the game."""
@@ -86,6 +102,7 @@ class LandingViewTest(TestCase):
     def test_landing_page_links_to_play(self):
         response = self.client.get('/')
         self.assertContains(response, '/play/')
+
 
 class RegistrationViewTest(TestCase):
     """Registration should send OTP by email only and show failures."""
@@ -125,10 +142,17 @@ class RegistrationViewTest(TestCase):
         self.assertNotIn('registration_user_id', self.client.session)
         self.assertNotIn('registration_otp_hash', self.client.session)
 
-class MoveValidationTest(TestCase):
+
+class MoveValidationTest(AuthenticatedClientTestCase):
     """Test move validation wrapper by mocking validate_move."""
 
     def setUp(self):
+        super().setUp()
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(
+            username='testplayer', password='testpass123'
+        )
+        self.client.login(username='testplayer', password='testpass123')
         self.client.get('/play/')
 
         # We mock validate_move to return specific booleans to simulate engine validation
@@ -235,10 +259,17 @@ class MoveValidationTest(TestCase):
         self.assertTrue(data['valid'])
         self.assertEqual(data['captured'], 'p')
 
-class ValidMovesTest(TestCase):
+
+class ValidMovesTest(AuthenticatedClientTestCase):
     """Test /api/valid-moves/ endpoint."""
 
     def setUp(self):
+        super().setUp()
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(
+            username='testplayer', password='testpass123'
+        )
+        self.client.login(username='testplayer', password='testpass123')
         self.client.get('/play/')
         self.engine_patcher = mock.patch.object(ChessGame, '_call_engine')
         self.mock_engine = self.engine_patcher.start()
@@ -271,10 +302,17 @@ class ValidMovesTest(TestCase):
         r = self.client.get('/api/valid-moves/?row=7&col=0')
         self.assertEqual(len(r.json()['valid_moves']), 0)
 
-class NewGameTest(TestCase):
+
+class NewGameTest(AuthenticatedClientTestCase):
     """Test the /api/new-game/ endpoint."""
 
     def setUp(self):
+        super().setUp()
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(
+            username='testplayer', password='testpass123'
+        )
+        self.client.login(username='testplayer', password='testpass123')
         self.client.get('/play/')
 
     def test_reset(self):
@@ -291,14 +329,17 @@ class NewGameTest(TestCase):
         self.assertEqual(data['current_turn'], 'white')
         self.assertEqual(len(data['move_history']), 0)
 
-class CheckPromotionTest(TestCase):
+
+class CheckPromotionTest(AuthenticatedClientTestCase):
     """Test the /api/check-promotion/ endpoint."""
 
-    @classmethod
-    def setUpTestData(cls):
-        pass
-
     def setUp(self):
+        super().setUp()
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(
+            username='testplayer', password='testpass123'
+        )
+        self.client.login(username='testplayer', password='testpass123')
         self.client.get('/play/')
         self.promo_patcher = mock.patch('game.engine.ChessGame.is_promotion_move')
         self.mock_promo = self.promo_patcher.start()
@@ -327,10 +368,17 @@ class CheckPromotionTest(TestCase):
         self.assertFalse(r.json()['is_promotion'])
         self.mock_promo.assert_called_once()
 
-class GameStateTest(TestCase):
+
+class GameStateTest(AuthenticatedClientTestCase):
     """Test the /api/state/ endpoint."""
 
     def setUp(self):
+        super().setUp()
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(
+            username='testplayer', password='testpass123'
+        )
+        self.client.login(username='testplayer', password='testpass123')
         self.client.get('/play/')
 
     def _set_game_session(self, game):
@@ -383,10 +431,17 @@ class GameStateTest(TestCase):
         self.assertEqual(data['white_time'], 600)
         self.assertEqual(data['black_time'], 600)
 
-class PauseTest(TestCase):
+
+class PauseTest(AuthenticatedClientTestCase):
     """Test the /api/pause/ endpoint."""
 
     def setUp(self):
+        super().setUp()
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(
+            username='testplayer', password='testpass123'
+        )
+        self.client.login(username='testplayer', password='testpass123')
         self.client.get('/play/')
 
     def _set_game_session(self, game):
@@ -435,10 +490,17 @@ class PauseTest(TestCase):
         self.assertEqual(data['white_time'], 597)
         self.assertEqual(data['black_time'], 600)
 
-class DrawOfferTest(TestCase):
+
+class DrawOfferTest(AuthenticatedClientTestCase):
     """Test draw agreement persistence through the API."""
 
     def setUp(self):
+        super().setUp()
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(
+            username='testplayer', password='testpass123'
+        )
+        self.client.login(username='testplayer', password='testpass123')
         self.client.get('/play/')
 
     def test_accept_draw_marks_game_as_draw_agreement(self):
@@ -457,10 +519,12 @@ class DrawOfferTest(TestCase):
         self.assertEqual(state['game_status'], 'draw')
         self.assertEqual(state['draw_reason'], 'agreement')
 
+
 class DrawRuleTest(SimpleTestCase):
     """Test rule-based draw detection in the engine."""
 
     def setUp(self):
+        super().setUp()
         self.validate_patcher = mock.patch.object(
             ChessGame, 'validate_move',
             return_value=(True, 'ok'))
@@ -565,10 +629,17 @@ class DrawRuleTest(SimpleTestCase):
 
         self.assertEqual(with_ep, without_ep)
 
-class AIMoveTest(TestCase):
+
+class AIMoveTest(AuthenticatedClientTestCase):
     """Test the /api/ai-move/ endpoint."""
 
     def setUp(self):
+        super().setUp()
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(
+            username='testplayer', password='testpass123'
+        )
+        self.client.login(username='testplayer', password='testpass123')
         self.client.get('/play/')
         self.engine_patcher = mock.patch.object(ChessGame, '_call_engine')
         self.mock_engine = self.engine_patcher.start()
@@ -835,6 +906,7 @@ class OpeningBookTest(SimpleTestCase):
         self.assertEqual(move['to_row'], 4)
         ChessGame._opening_book = None
 
+
 class MoveHistoryColorTest(TestCase):
     """Test that move_history records the correct player color."""
 
@@ -859,6 +931,7 @@ class StatsCleanupTest(TestCase):
     """Tests for the cleaned-up stats view and user isolation."""
 
     def setUp(self):
+        super().setUp()
         self.user_a = User.objects.create_user(username='usera', password='password123')
         self.user_b = User.objects.create_user(username='userb', password='password123')
         from .models import GameResult
@@ -942,99 +1015,3 @@ class StatsCleanupTest(TestCase):
         response = self.client.get('/stats/')
         self.assertNotContains(response, 'Checkmate')
         self.assertContains(response, 'No games played yet.')
-
-class StaleGameCleanupTest(TestCase):
-    def setUp(self):
-        self.url = '/api/cron/cleanup-stale-games/'
-        self.secret = 'test_secret_123'
-        
-    @override_settings(CRON_SECRET='test_secret_123')
-    def test_stale_game_deletion(self):
-        from django.contrib.sessions.backends.db import SessionStore
-        import time
-        
-        s = SessionStore()
-        s.create()
-        # low engagement: < 5 moves
-        s['game'] = {
-            'game_status': 'active',
-            'move_history': [1, 2, 3],
-            'last_ts': time.time() - (50 * 3600)
-        }
-        s.save()
-        
-        response = self.client.post(self.url, HTTP_AUTHORIZATION=f'Bearer {self.secret}')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['deleted_games'], 1)
-        
-        s = SessionStore(session_key=s.session_key)
-        self.assertNotIn('game', s)
-
-    @override_settings(CRON_SECRET='test_secret_123')
-    def test_stale_game_auto_resignation(self):
-        from django.contrib.sessions.backends.db import SessionStore
-        import time
-        from game.models import GameResult
-        
-        s = SessionStore()
-        s.create()
-        # high engagement: >= 5 moves
-        s['game'] = {
-            'game_status': 'active',
-            'move_history': [1, 2, 3, 4, 5, 6],
-            'current_turn': 'white',
-            'player_color': 'white',
-            'mode': 'pvp',
-            'last_ts': time.time() - (50 * 3600)
-        }
-        s.save()
-        
-        response = self.client.post(self.url, HTTP_AUTHORIZATION=f'Bearer {self.secret}')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['resigned_games'], 1)
-        
-        s = SessionStore(session_key=s.session_key)
-        self.assertEqual(s['game']['game_status'], 'resignation')
-        
-        self.assertEqual(GameResult.objects.count(), 1)
-        res = GameResult.objects.first()
-        self.assertEqual(res.winner, 'black')
-        self.assertEqual(res.end_reason, 'resign')
-
-    @override_settings(CRON_SECRET='test_secret_123')
-    def test_edge_cases(self):
-        from django.contrib.sessions.backends.db import SessionStore
-        import time
-        
-        # 1. Game less than 48 hours old
-        s1 = SessionStore()
-        s1.create()
-        s1['game'] = {'game_status': 'active', 'move_history': [1], 'last_ts': time.time() - (10 * 3600)}
-        s1.save()
-        
-        # 2. Game already completed
-        s2 = SessionStore()
-        s2.create()
-        s2['game'] = {'game_status': 'checkmate', 'move_history': [1, 2, 3, 4, 5], 'last_ts': time.time() - (50 * 3600)}
-        s2.save()
-        
-        # 3. Session without game data
-        s3 = SessionStore()
-        s3.create()
-        s3.save()
-        
-        response = self.client.post(self.url, HTTP_AUTHORIZATION=f'Bearer {self.secret}')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['deleted_games'], 0)
-        self.assertEqual(response.json()['resigned_games'], 0)
-        
-        s1 = SessionStore(session_key=s1.session_key)
-        self.assertEqual(s1['game']['game_status'], 'active')
-
-    @override_settings(CRON_SECRET='test_secret_123')
-    def test_protected_endpoint(self):
-        response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 401)
-        
-        response = self.client.post(self.url, HTTP_AUTHORIZATION='Bearer wrong_secret')
-        self.assertEqual(response.status_code, 401)

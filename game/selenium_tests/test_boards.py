@@ -13,6 +13,7 @@ class UITest(BaseE2ETest):
     def test_01_welcome_overlay_loads(self):
         """Welcome overlay loads with name inputs and mode buttons."""
         log_info("Testing welcome overlay...")
+        self._login()
         self.driver.get(self.live_server_url + '/play/')
 
         welcome_overlay = self.wait.until(

@@ -5,11 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In | Checkora</title>
+
+    <meta name="description" content="Sign in to your Checkora account and start playing chess.">
+    <link rel="stylesheet" href="{% static 'game/css/auth.css' %}?v=8">
+
     <link rel="stylesheet" href="{% static 'game/css/auth.css' %}?v=6">
+
     <link rel="icon" type="image/jpeg" href="{% static 'game/favicon.jpeg' %}">
 </head>
 <body class="login-page">
-    <!-- Back-to-home arrow -->
+
+    <!-- Django messages passed to JS as JSON (toasts) -->
+    <script id="django-messages-data" type="application/json">
+        [{% for message in messages %}
+            {"level_tag": "{{ message.tags }}", "message": "{{ message|escapejs }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}]
+    </script>
+
+    <!-- Toast container (auth.js will populate this) -->
+    <div id="toast-container" role="region" aria-live="polite" aria-label="Notifications"></div>
+
+    <!-- Back to home -->
     <a href="{% url 'landing' %}" class="back-home" aria-label="Back to home">&larr; Home</a>
 
     <div class="header">
@@ -21,33 +37,44 @@
     </div>
 
     <div class="auth-card">
-        <form method="POST">
+        <form method="POST" id="login-form" novalidate>
             {% csrf_token %}
-            
-            {% if form.non_field_errors %}
-                {{ form.non_field_errors }}
-            {% endif %}
-            
+
             {% for field in form %}
                 <div class="form-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
                     {% if field.errors %}
-                        {{ field.errors }}
+                        <ul class="errorlist" aria-live="polite">
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
                     {% endif %}
                 </div>
             {% endfor %}
-            
-            <button type="submit" class="btn btn-gold">Sign In</button>
+
+            {% if form.non_field_errors %}
+                <ul class="errorlist" aria-live="polite">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <button type="submit" class="btn btn-gold" id="login-submit-btn">Sign In</button>
         </form>
-        
+
         <div class="auth-footer">
+            <p><a href="{% url 'forgot_password' %}">Forgot Password?</a></p>
             Don't have an account? <a href="{% url 'register' %}">Register here</a>
-            <br><br>
-            <a href="{% url 'password_reset' %}">Forgot Password?</a>
         </div>
     </div>
 
+
+    <script src="{% static 'game/js/auth.js' %}?v=8"></script>
+
     <script src="{% static 'game/js/auth.js' %}?v=6"></script>
+
 </body>
 </html>

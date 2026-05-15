@@ -7,7 +7,6 @@ urlpatterns = [
     path('api/move/', views.make_move, name='make_move'),
     path('api/valid-moves/', views.valid_moves, name='valid_moves'),
     path('api/new-game/', views.new_game, name='new_game'),
-    path('api/resume/', views.resume_game, name='resume_game'),
     path(
         'api/check-promotion/', views.check_promotion, name='check_promotion'
     ),
@@ -17,7 +16,6 @@ urlpatterns = [
     path('api/ai-move/', views.ai_move, name='ai_move'),
     path('api/draw/', views.offer_draw, name='offer_draw'),
     path('stats/', views.stats_view, name='stats'),
-    path('api/cron/cleanup-stale-games/', views.cleanup_cron, name='cleanup_cron'),
 
     # Authentication
     path('register/', views.register_view, name='register'),
@@ -25,4 +23,10 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('rules/', views.rules, name='rules'),
     path('logout/', views.logout_view, name='logout'),
+    path('forgot-password/', views.forgot_password_view, name='forgot_password'),
+    path('verify-otp-password/', views.verify_otp_password_view, name='verify_otp_password'),
+    path('reset-password/', views.reset_password_confirm_view, name='reset_password_confirm'),
 ]
+
+
+

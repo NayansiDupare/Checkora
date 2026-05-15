@@ -6,6 +6,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+from django.contrib.auth.models import User
+import secrets
 
 # ── ANSI colours for readable terminal output ──────────────────────
 GREEN = "\033[92m"
@@ -64,8 +66,26 @@ class BaseE2ETest(StaticLiveServerTestCase):
             log_info("Chrome WebDriver closed")
         super().tearDownClass()
 
+    def _login(self):
+        """Helper to create a test user and log them in via the UI."""
+        username = f'testuser_{secrets.token_hex(4)}'
+        User.objects.create_user(username, password='testpassword')
+        
+        self.driver.get(self.live_server_url + '/login/')
+        
+        username_input = self.wait.until(EC.presence_of_element_located((By.NAME, 'username')))
+        password_input = self.driver.find_element(By.NAME, 'password')
+        
+        username_input.send_keys(username)
+        password_input.send_keys('testpassword')
+        self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+        
+        self.wait.until(EC.url_changes(self.live_server_url + '/login/'))
+        log_ok(f"Logged in as {username}")
+
     def _start_pvp_game(self):
         """Helper: navigate to homepage and start a PvP game."""
+        self._login()
         log_info(f"Starting PvP game at {self.live_server_url}/play/")
         self.driver.get(self.live_server_url + '/play/')
 
