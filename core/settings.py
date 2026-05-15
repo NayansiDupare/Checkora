@@ -133,6 +133,7 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Session Cookie Security
 SESSION_COOKIE_HTTPONLY = True
@@ -154,7 +155,7 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
 # Redirect after login
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'index'
 
 # SECURITY SETTINGS (Implemented via GSSoC Audit)
 SECURE_BROWSER_XSS_FILTER = True

@@ -1,8 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Checkora - Game Stats</title>
+    <link rel="stylesheet" href="{% static 'game/css/toast.css' %}">
     <style>
         body { background: #0f0f1a; color: #d0d0d0; font-family: Arial, sans-serif; padding: 40px; }
         h1 { color: #f0c040; text-align: center; letter-spacing: 2px; }
@@ -65,5 +67,7 @@
     </div>
     {% endif %}
 
+    <div id="toast-container" class="toast-container"></div>
+    <script src="{% static 'game/js/toast.js' %}"></script>
 </body>
 </html>

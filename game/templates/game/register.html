@@ -11,6 +11,7 @@
       type="image/jpeg"
       href="{% static 'game/favicon.jpeg' %}"
     />
+    <link rel="stylesheet" href="{% static 'game/css/toast.css' %}">
   </head>
   <body>
        <!-- Back-to-home arrow -->
@@ -61,6 +62,8 @@
         </div>
     </div>
 
+    <div id="toast-container" class="toast-container"></div>
+    <script src="{% static 'game/js/toast.js' %}"></script>
     <script src="{% static 'game/js/auth.js' %}?v=6"></script>
   </body>
 </html>

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In | Checkora</title>
     <link rel="stylesheet" href="{% static 'game/css/auth.css' %}?v=6">
+    <link rel="stylesheet" href="{% static 'game/css/toast.css' %}">
     <link rel="icon" type="image/jpeg" href="{% static 'game/favicon.jpeg' %}">
 </head>
 <body class="login-page">
@@ -48,6 +49,8 @@
         </div>
     </div>
 
+    <div id="toast-container" class="toast-container"></div>
+    <script src="{% static 'game/js/toast.js' %}"></script>
     <script src="{% static 'game/js/auth.js' %}?v=6"></script>
 </body>
 </html>
